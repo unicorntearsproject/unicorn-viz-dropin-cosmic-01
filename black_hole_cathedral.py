@@ -129,7 +129,7 @@ void main() {
 class BlackHoleCathedral(BaseEffect):
     NAME = "Black Hole Cathedral"
     AUTHOR = "unicorn-viz"
-    TAGS = ["cosmic", "shader", "audio", "cathedral"]
+    TAGS = ["cosmic", "shader", "cathedral"]
     PING_PONG_FRIENDS = [
         'Cosmos',
         'Starfield',

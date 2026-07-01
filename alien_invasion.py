@@ -134,7 +134,7 @@ void main() {
 class AlienInvasion(BaseEffect):
     NAME = "Alien Invasion"
     AUTHOR = "Autopilot"
-    TAGS = ["scifi", "audio", "cosmic", "procedural"]
+    TAGS = ["cosmic", "sci-fi", "procedural"]
     PING_PONG_FRIENDS = [
         'Cosmos',
         'Copper Bars',

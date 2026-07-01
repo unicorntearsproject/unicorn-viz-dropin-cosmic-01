@@ -94,7 +94,7 @@ void main() {
 class WaveyGravy(BaseEffect):
     NAME = "Wavey Gravy"
     AUTHOR = "unicorn-viz"
-    TAGS = ["sci-fi", "audio", "shader"]
+    TAGS = ["cosmic", "sci-fi", "shader"]
     SPEED_TIME_BIAS = 0.35
     SPEED_TIME_SCALE = 0.9
     PING_PONG_FRIENDS = ['Tunnel', 'Plasma', 'Psychedelic', 'Unicorn Tears']
