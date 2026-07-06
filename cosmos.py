@@ -110,7 +110,7 @@ void main() {
 class Cosmos(BaseEffect):
     NAME = "Cosmos"
     AUTHOR = "unicorn-viz"
-    TAGS = ["cosmic", "shader"]
+    TAGS = ['cosmic', 'shader', 'groovy', 'intense']
     SPEED_TIME_BIAS = 0.2
     SPEED_TIME_SCALE = 0.8
     PING_PONG_FRIENDS = [
