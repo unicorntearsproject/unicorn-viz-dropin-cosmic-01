@@ -26,7 +26,7 @@ the control room.
 """
 from __future__ import annotations
 
-__version__ = '0.10.0'
+__version__ = '0.11.0'
 
 import moderngl
 
@@ -56,6 +56,9 @@ uniform float iIntensity;
 uniform float iZoomGain;
 uniform float iEnemyGain;
 uniform float iStrobeGain;
+uniform float iMidPhase;   // CPU-integrated mid phase (audio-speed safe)
+uniform float iTrebPhase;  // CPU-integrated treble phase
+uniform float iExplPhase;  // CPU-integrated explosion phase
 in  vec2 v_pos;
 out vec4 fragColor;
 
@@ -84,14 +87,17 @@ void main() {
         float col_idx = fi - row * 6.0;
 
         // Sine-wave formation: rows undulate up-down, drift side to side.
-        float wave_t = t * (0.3 + iMid * 0.5);
+        // CPU-integrated phases (see update()): the old t * (k + audio)
+        // forms re-randomized formation/hue/fire phase every frame under
+        // music once iTime grew large (audit 2026-08-03 §8 Class A).
+        float wave_t = t * 0.3 + iMidPhase * 0.5;
         float x = col_idx / 6.0 - 0.5 + sin(row * 0.5 + wave_t) * (0.15 + iMid * 0.2);
         float y = 0.4 - row * 0.08 + cos(wave_t * 0.7 + fi * 0.2) * (0.05 + iMid * 0.1);
         vec2 epos = vec2(x, y);
 
         float dist_e = length(p - epos);
         float enemy = smoothstep(0.04, 0.0, dist_e);
-        float hue = fract(t * (0.1 + iTreble * 0.2) + fi * 0.1);
+        float hue = fract(t * 0.1 + iTrebPhase * 0.2 + fi * 0.1);
         col += hsvtorgb(hue, 0.9, 1.0) * enemy * (0.7 + iMid * 1.2) * iEnemyGain;
         col += hsvtorgb(hue, 0.8, 0.9) * enemy * enemy * 1.5;  // bloom
     }
@@ -100,7 +106,7 @@ void main() {
     for (int f = 0; f < 16; f++) {
         float ff = float(f);
         float fire_x = cos(ff * 0.4) * 0.3;
-        float fire_y = fract(t * (0.5 + iMid * 1.2) + ff * 0.1) - 0.5;
+        float fire_y = fract(t * 0.5 + iMidPhase * 1.2 + ff * 0.1) - 0.5;
         float fire_w = smoothstep(0.008, 0.0, abs(p.x - fire_x)) * smoothstep(0.0, -0.5, fire_y);
         col += vec3(1.0, 0.1, 0.3) * fire_w * (0.6 + iMid);
     }
@@ -119,7 +125,7 @@ void main() {
         float fl = float(l);
         if (iExplosion < 0.01) continue;  // only fire during explosions
         float laser_x = player_x + (fl - 4.0) * 0.02;
-        float laser_y = fract(t * (1.5 + iExplosion * 2.0) - fl * 0.08);
+        float laser_y = fract(t * 1.5 + iExplPhase * 2.0 - fl * 0.08);
         float laser_fire = smoothstep(0.006, 0.0, abs(p.x - laser_x))
                          * smoothstep(0.0, 0.5, laser_y);
         col += vec3(0.2, 1.0, 0.4) * laser_fire * 1.2;
@@ -183,6 +189,10 @@ class SunShip3000(BaseEffect):
         self._mid = 0.0
         self._treble = 0.0
         self._explosion = 0.0
+        # CPU-integrated audio phases (nebula_drift pattern).
+        self._mid_phase = float(self.rng.uniform(0.0, 100.0))
+        self._treb_phase = float(self.rng.uniform(0.0, 100.0))
+        self._expl_phase = float(self.rng.uniform(0.0, 100.0))
         self._prog = self._make_program(_VERT, _FRAG)
         self._vao, self._vbo = self._fullscreen_quad(self._prog)
 
@@ -195,6 +205,10 @@ class SunShip3000(BaseEffect):
         if audio.beat:
             self._explosion = 1.0
         self._explosion = max(self._explosion, self._bass * 0.25)
+        rate = 0.6 + float(self.parameters['speed']) * 0.5
+        self._mid_phase = (self._mid_phase + dt * rate * self._mid) % 1000.0
+        self._treb_phase = (self._treb_phase + dt * rate * self._treble) % 1000.0
+        self._expl_phase = (self._expl_phase + dt * rate * self._explosion) % 1000.0
 
     def render(self) -> None:
         p = self._prog
@@ -209,6 +223,9 @@ class SunShip3000(BaseEffect):
         p["iZoomGain"].value = self.parameters["zoom"]
         p["iEnemyGain"].value = self.parameters["enemy_gain"]
         p["iStrobeGain"].value = self.parameters["strobe"]
+        p["iMidPhase"].value = self._mid_phase
+        p["iTrebPhase"].value = self._treb_phase
+        p["iExplPhase"].value = self._expl_phase
         self._vao.render(moderngl.TRIANGLE_STRIP)
 
     def destroy(self) -> None:

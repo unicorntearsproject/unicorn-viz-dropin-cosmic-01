@@ -66,8 +66,12 @@ void main() {
 
     float t = iTime * (0.2 + 0.8 * iSpeed);
 
-    float n1 = fbm(uv * 1.4 + vec2(t * 0.08, -t * 0.03));
-    float n2 = fbm(uv * 2.3 - vec2(t * 0.06, t * 0.05));
+    // tw: bounded time for every hash/fbm input — unbounded t pushes the
+    // finest fbm octave and the star-cell hash past float32's 2^23 mantissa
+    // (banded nebula detail, stuck/striped stars; audit 2026-08-03 §8).
+    float tw = mod(t, 1024.0);
+    float n1 = fbm(uv * 1.4 + vec2(tw * 0.08, -tw * 0.03));
+    float n2 = fbm(uv * 2.3 - vec2(tw * 0.06, tw * 0.05));
     float neb = smoothstep(0.35, 0.95, n1 * 0.7 + n2 * 0.5);
 
     vec3 nebA = vec3(0.05, 0.10, 0.35);
@@ -79,7 +83,7 @@ void main() {
     col *= 0.25 + neb * 1.1;
 
     // Stars
-    vec2 st = (uv + vec2(t * 0.2, 0.0)) * 120.0;
+    vec2 st = (uv + vec2(mod(t * 0.2, 128.0), 0.0)) * 120.0;
     vec2 cell = floor(st);
     vec2 f = fract(st) - 0.5;
     float starSeed = hash(cell);

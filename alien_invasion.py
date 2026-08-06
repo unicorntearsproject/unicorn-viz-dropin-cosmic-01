@@ -129,7 +129,10 @@ void main() {
             float bw = mix(0.012, 0.11, clamp((top - uv.y) / max(top + 0.9, 1e-3), 0.0, 1.0));
             bw *= (0.6 + iBeamSpread * 2.2);
             float inBeam = smoothstep(bw, 0.0, abs(uv.x - centre.x)) * step(uv.y, top);
-            float motes = hash21(floor(vec2(uv.x * 60.0, uv.y * 14.0 - t * 3.0)));
+            // mod() before the hash: unbounded t (start phase up to 10k) times
+            // 14 exceeds float32's 2^23 inside hash21, freezing the beam
+            // motes into static stripes (audit 2026-08-03 §8 Class B).
+            float motes = hash21(floor(vec2(uv.x * 60.0, uv.y * 14.0 - mod(t * 3.0, 1024.0))));
             float sparkle = step(0.965, motes) * (0.4 + iTreble * 0.8);
             vec3 beamCol = mix(vec3(0.25, 1.0, 0.55), tone, 0.4);
             col += beamCol * inBeam * (0.10 + iBass * 0.16 + 0.05 * sin(t * 3.0 + seed * 5.0));
