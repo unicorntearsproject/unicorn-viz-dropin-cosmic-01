@@ -26,7 +26,7 @@ the control room.
 """
 from __future__ import annotations
 
-__version__ = '0.11.0'
+__version__ = '0.11.1'
 
 import moderngl
 
@@ -99,7 +99,7 @@ void main() {
         float enemy = smoothstep(0.04, 0.0, dist_e);
         float hue = fract(t * 0.1 + iTrebPhase * 0.2 + fi * 0.1);
         col += hsvtorgb(hue, 0.9, 1.0) * enemy * (0.7 + iMid * 1.2) * iEnemyGain;
-        col += hsvtorgb(hue, 0.8, 0.9) * enemy * enemy * 1.5;  // bloom
+        col += hsvtorgb(hue, 0.8, 0.9) * enemy * enemy * 1.5 * (0.6 + iTreble * 0.8);  // spark bloom
     }
 
     // --- enemy laser fire downward (mid controls intensity) ---
@@ -108,7 +108,7 @@ void main() {
         float fire_x = cos(ff * 0.4) * 0.3;
         float fire_y = fract(t * 0.5 + iMidPhase * 1.2 + ff * 0.1) - 0.5;
         float fire_w = smoothstep(0.008, 0.0, abs(p.x - fire_x)) * smoothstep(0.0, -0.5, fire_y);
-        col += vec3(1.0, 0.1, 0.3) * fire_w * (0.6 + iMid);
+        col += vec3(1.0, 0.1, 0.3) * fire_w * (0.6 + iMid) * (0.7 + iTreble * 0.7);
     }
 
     // --- player ship at bottom (bass controls horizontal position) ---
@@ -128,7 +128,7 @@ void main() {
         float laser_y = fract(t * 1.5 + iExplPhase * 2.0 - fl * 0.08);
         float laser_fire = smoothstep(0.006, 0.0, abs(p.x - laser_x))
                          * smoothstep(0.0, 0.5, laser_y);
-        col += vec3(0.2, 1.0, 0.4) * laser_fire * 1.2;
+        col += vec3(0.2, 1.0, 0.4) * laser_fire * 1.2 * (0.7 + iTreble * 0.7);
     }
 
     // --- beat explosion (massive screen-wide bloom) ---
