@@ -1,11 +1,15 @@
 # cosmic-01 — Unicorn Viz effect pack
 
-**Version 0.11.1**
+**Version 0.11.2**
 
 
 deep space / lensing / trippy cosmic visuals
 
 ## Changelog
+
+- **0.11.2** — Alien Invasion: the starfield's stars were a bare threshold on a
+  cell hash, which fills the whole square cell and reads as a grid of hard
+  little marks. Each star is now a soft round point placed inside its cell.
 
 - **0.11.1** — fixed a crash-on-load bug in Sun Ship 3000: `iTreble` was
   declared and set from Python but never referenced in the compiled

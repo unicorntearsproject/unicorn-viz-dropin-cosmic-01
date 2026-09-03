@@ -64,10 +64,17 @@ vec3 backdrop(vec2 uv, float t) {
     col *= col;
     col *= 0.10 + 0.10 * (v * 0.5 + 0.5);
 
-    float sh = hash21(floor(uv * vec2(140.0, 90.0)));
+    // Stars: a soft round point placed inside its cell. Filling the whole
+    // cell instead -- a bare threshold on the cell hash -- is what renders
+    // as a field of hard little squares.
+    vec2 scell = uv * vec2(140.0, 90.0);
+    vec2 sg = floor(scell);
+    float sh = hash21(sg);
     if (sh > 0.965) {
+        vec2 sd = fract(scell) - vec2(hash21(sg + 5.3), hash21(sg + 9.1));
         float tw = 0.5 + 0.5 * sin(t * (2.0 + sh * 6.0) + sh * 40.0);
-        col += vec3(0.8, 0.85, 1.0) * tw * (0.35 + iTreble * 0.5);
+        col += vec3(0.8, 0.85, 1.0) * exp(-dot(sd, sd) * 26.0) * tw
+             * (0.35 + iTreble * 0.5 + 0.05);
     }
 
     float ground = smoothstep(0.16, 0.0, uv.y);
